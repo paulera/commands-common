@@ -1,9 +1,5 @@
 ::echo off
 
-:: check if user is admin
-openfiles > NUL 2>&1
-IF NOT %ERRORLEVEL% EQU 0 goto notadmin
-
 IF "%1"=="" GOTO noparam
 IF NOT EXIST "%1" GOTO noexist
 
@@ -16,6 +12,10 @@ if "%currentfolder%" == "" goto nocurdir
 
 IF EXIST R:\nul GOTO skipmount
 
+:: check if user is admin
+openfiles > NUL 2>&1
+IF NOT %ERRORLEVEL% EQU 0 goto notadmin
+
 imdisk -a -t vm -s 500m -m r: -p "/fs:ntfs /q /y"
 IF NOT EXIST R:\nul GOTO notr
 
@@ -24,6 +24,7 @@ IF NOT EXIST R:\nul GOTO notr
 IF EXIST R:\%currentfolder%\nul goto diralready
 
 echo d | xcopy /E /R /Y %1 %1.bkp
+
 IF NOT EXIST %1.bkp\nul GOTO bkpfail
 
 robocopy "%1" "R:\%currentfolder%" /E /IS /MOVE
@@ -44,6 +45,10 @@ IF {%_TMP%}=={} (
 mklink /J %1 R:\%currentfolder%
 fsutil reparsepoint query "%1" >nul
 if %errorlevel% == 1 goto nojunction
+
+:diralready
+
+IF NOT EXIST %1.bkp\nul GOTO bkpfail
 
 echo Keeping backup in sync... Let it running, don't close this window
 robocopy "R:\%currentfolder%" "%1.bkp" /MIR /Z /W:5 /njh /njs /xj /MOT:1
@@ -82,7 +87,7 @@ goto end
 :: ------------------------------------------------------
 
 :bkpfail
-echo Failed to create %1.bkp
+echo Failed to find or create %1.bkp
 pause
 goto end
 
@@ -103,7 +108,7 @@ goto end
 :: ------------------------------------------------------
 
 :notadmin
-echo You must run as administrator
+echo You must run as administrator to be able to create a ramdisk
 pause
 goto end
 
