@@ -1,5 +1,7 @@
 ::echo off
 
+SET DISKSIZE=700
+
 IF "%1"=="" GOTO noparam
 IF NOT EXIST "%1" GOTO noexist
 
@@ -16,7 +18,7 @@ IF EXIST R:\nul GOTO skipmount
 openfiles > NUL 2>&1
 IF NOT %ERRORLEVEL% EQU 0 goto notadmin
 
-imdisk -a -t vm -s 500m -m r: -p "/fs:ntfs /q /y"
+imdisk -a -t vm -s %DISKSIZE%m -m r: -p "/fs:ntfs /q /y"
 IF NOT EXIST R:\nul GOTO notr
 
 :skipmount
